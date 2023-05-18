@@ -1,6 +1,7 @@
 export interface Category {
-  id: number;
+  id: string;
   name: string;
+  subCategories?:Category[]
 }
 
 export interface ApiQuestion {

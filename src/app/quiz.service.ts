@@ -16,8 +16,36 @@ export class QuizService {
 
   getAllCategories(): Observable<Category[]> {
     return this.http.get<{ trivia_categories: Category[] }>(this.API_URL + "api_category.php").pipe(
-      map(res => res.trivia_categories)
+      map(res => this.nestCategories(res.trivia_categories))
     );
+  }
+
+  /**
+   * Group the categories together
+   * @param trivia_categories
+   * @private
+   */
+  nestCategories(trivia_categories: Category[]):Category[] {
+    return trivia_categories.reduce((mainCategories, current) => {
+
+      // This can be splitted in main and sub categories
+      if (current.name.includes(":")) {
+        let [CategoryName, subCategoryName] = current.name.split(":")
+        let existingCategory = mainCategories.find(e => e.name === CategoryName)
+        if (existingCategory) {
+          existingCategory.subCategories?.push({name: subCategoryName.trim(), id: current.id})
+        } else {
+          mainCategories.push({
+            name: CategoryName,
+            subCategories: [{name: subCategoryName.trim(), id: current.id}],
+            id: current.id
+          })
+        }
+      } else {
+        mainCategories.push({...current})
+      }
+      return mainCategories
+    }, new Array<Category>());
   }
 
   createQuiz(categoryId: string, difficulty: Difficulty): Observable<Question[]> {

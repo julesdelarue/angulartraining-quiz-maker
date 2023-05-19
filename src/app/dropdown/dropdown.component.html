@@ -1,0 +1,19 @@
+<div class="dropdown-input">
+
+
+
+<!--    <div *ngIf="selectedOption" >
+      Selected : {{selectedOption?.name}}
+      <button (click)="clear()">Clear</button>
+    </div>-->
+  <input type="search" [formControl]="searchControl" (click)="open()" #input/>
+
+  <div class="options-container" #optionContainer *ngIf="isOpen">
+    <div class="option-item"
+      *ngFor="let option of filteredOptions"
+      [innerHTML]="option.name | highlight : term"
+      (click)="select(option)">
+    </div>
+  </div>
+
+</div>

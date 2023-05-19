@@ -9,6 +9,7 @@ import {QuizMakerComponent} from './quiz-maker/quiz-maker.component';
 import { QuizComponent } from './quiz/quiz.component';
 import { QuestionComponent } from './question/question.component';
 import { AnswersComponent } from './answers/answers.component';
+import {DropdownComponent} from "./dropdown/dropdown.component";
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { AnswersComponent } from './answers/answers.component';
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    DropdownComponent
   ],
   providers: [],
   bootstrap: [AppComponent]

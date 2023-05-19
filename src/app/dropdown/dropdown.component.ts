@@ -1,6 +1,6 @@
 import {
   Component,
-  ElementRef, forwardRef,
+  ElementRef, forwardRef, HostListener,
   Input,
   OnChanges,
   OnDestroy,
@@ -10,10 +10,17 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {Category} from "../data.models";
+
 import {ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule} from "@angular/forms";
-import {debounceTime, filter, fromEvent, Subscription, tap} from "rxjs";
+import {debounceTime, filter, fromEvent, Subscription} from "rxjs";
 import {HighlightPipe} from "../highlight.pipe";
+
+
+export interface IDisplayable{
+  id:number|string;
+  label:string;
+}
+export type DropdownOption<T> = T & IDisplayable;
 
 @Component({
   selector: 'app-dropdown',
@@ -30,7 +37,8 @@ import {HighlightPipe} from "../highlight.pipe";
   styleUrls: ['./dropdown.component.css'],
   encapsulation: ViewEncapsulation.None
 })
-export class DropdownComponent implements OnInit, OnDestroy, OnChanges, ControlValueAccessor {
+export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, ControlValueAccessor {
+
 
   // Un changement est défini par un clic sur un des éléments de la liste, ou null si l'utilisateur est en train d'écrire
   private _onChange = (_: any) => { };
@@ -40,15 +48,14 @@ export class DropdownComponent implements OnInit, OnDestroy, OnChanges, ControlV
   @ViewChild('optionContainer') optionContainer!: ElementRef;
   @ViewChild('input') inputContainer!: ElementRef;
 
-  selectedOption?: Category;
+  selectedOption?: DropdownOption<T>;
 
   isOpen = false;
 
   // FIXME check if we can avoid null for async inputs
-  // TODO Generic input type
   @Input()
-  options: Category[] | null = []
-  filteredOptions: Category[] = []
+  options: DropdownOption<T>[] | null = []
+  filteredOptions: DropdownOption<T>[] = []
   searchControl = new FormControl();
   searchControlSubs: Subscription | undefined;
   term: string | undefined;
@@ -93,10 +100,12 @@ export class DropdownComponent implements OnInit, OnDestroy, OnChanges, ControlV
       this.selectedOption = undefined;
       this._onChange(null)
     }
+
+    // TODO Faire en sorte que la fonction de tri soit définir par l'appelant ??
     this.term = value
     value === null || value === undefined || value.length === 0 ?
       this.resetOptions() :
-      this.filteredOptions = this.options?.filter(option => option.name.toLowerCase().includes(value.toLowerCase())) ?? []
+      this.filteredOptions = this.options?.filter(option => option.label.toLowerCase().includes(value.toLowerCase())) ?? []
   }
 
   resetOptions() {
@@ -112,12 +121,16 @@ export class DropdownComponent implements OnInit, OnDestroy, OnChanges, ControlV
     this.isOpen = false
   }
 
-  select(option: Category) {
+  select(option: DropdownOption<T>) {
     this.selectedOption = option;
-    this.searchControl.setValue(option.name, {emitEvent:false, onlySelf:true})
-    this.term = option.name
+    this.searchControl.setValue(option.label, {emitEvent:false, onlySelf:true})
+    this.term = option.label
     this.close()
     this._onChange(option)
+  }
+
+  trackById(index:number, item:DropdownOption<T>) {
+    return item.id;
   }
 
   /**
@@ -149,4 +162,24 @@ export class DropdownComponent implements OnInit, OnDestroy, OnChanges, ControlV
       this.selectedOption = this.options?.find(e => e.id === obj['id'])
     }
   }
+
+  /**
+   * Gestion des touches du clavier
+   * https://www.w3.org/TR/DOM-Level-3-Events-key/#named-key-attribute-values
+   */
+  @HostListener('keydown.arrowdown', ['$event'])
+  handleArrowDownKey($event: KeyboardEvent) {
+    console.error($event)
+  }
+
+  @HostListener('keydown.arrowup', ['$event'])
+  handleArrowUpKey($event: KeyboardEvent) {
+    console.error("up")
+  }
+
+  @HostListener('keydown.enter', ['$event'])
+  handleEnterKey($event: KeyboardEvent) {
+    console.error("up")
+  }
+
 }

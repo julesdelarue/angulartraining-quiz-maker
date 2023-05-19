@@ -10,8 +10,8 @@
 
   <div class="options-container" #optionContainer *ngIf="isOpen">
     <div class="option-item"
-      *ngFor="let option of filteredOptions"
-      [innerHTML]="option.name | highlight : term"
+      *ngFor="let option of filteredOptions; trackBy: trackById"
+      [innerHTML]="option.label | highlight : term"
       (click)="select(option)">
     </div>
   </div>

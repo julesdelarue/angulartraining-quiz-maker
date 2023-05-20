@@ -19,6 +19,8 @@ export class QuizMakerComponent {
   selectableSubCategories: DropdownOption<Category>[] = [];
   categories$: Observable<DropdownOption<Category>[]>;
   questions$!: Observable<Question[]>;
+  extraQuestions$!: Observable<Question[]>;
+
   quizForm = new FormGroup({
     mainCategories: new FormControl<Category| undefined>(undefined, Validators.required),
     subCategories: new FormControl<Category | undefined>(undefined),
@@ -43,6 +45,7 @@ export class QuizMakerComponent {
   createQuiz(): void {
     let category = this.quizForm.value.subCategories?.id ? this.quizForm.value.subCategories?.id : this.quizForm.value.mainCategories?.id
     this.questions$ = this.quizService.createQuiz(category ?? this.ANY_CATEGORY.id, this.quizForm.value.difficulty!);
+    this.extraQuestions$ = this.quizService.createQuiz(category ?? this.ANY_CATEGORY.id, this.quizForm.value.difficulty!, 1);
   }
 
   // https://angular.io/guide/form-validation#built-in-validator-functions

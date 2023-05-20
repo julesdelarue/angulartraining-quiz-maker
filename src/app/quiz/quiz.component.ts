@@ -11,7 +11,10 @@ import {Router} from '@angular/router';
 export class QuizComponent {
 
   @Input()
-  questions: Question[] | null = [];
+  questions: Question[] = [];
+
+  @Input()
+  extraQuestions: Question[] = [];
 
   userAnswers: string[] = [];
   quizService = inject(QuizService);
@@ -22,4 +25,12 @@ export class QuizComponent {
     this.router.navigateByUrl("/result");
   }
 
+  /**
+   * Player is allowed to change a question, as long as there are extra questions left
+   * @param i : index of the question to swap
+   */
+  swapQuestion(i:number) {
+    let shiftedQuestion = this.extraQuestions.shift()
+    if(shiftedQuestion) this.questions[i] = shiftedQuestion
+  }
 }

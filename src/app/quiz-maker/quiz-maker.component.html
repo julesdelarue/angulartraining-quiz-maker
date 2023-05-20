@@ -29,5 +29,6 @@
   </div>
 </div>
 <div class="row">
-  <app-quiz [questions]="questions$ | async"></app-quiz>
+  <app-quiz [questions]="(questions$ | async) ?? []"
+            [extraQuestions]="(extraQuestions$ | async) ?? []"></app-quiz>
 </div>

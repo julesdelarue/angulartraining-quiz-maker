@@ -28,6 +28,7 @@ export class QuizService {
   nestCategories(trivia_categories: Category[]):Category[] {
     return trivia_categories.reduce((mainCategories, current) => {
 
+      // TODO refacto/clean code
       // This can be splitted in main and sub categories
       if (current.name.includes(":")) {
         let [CategoryName, subCategoryName] = current.name.split(":")
@@ -48,9 +49,9 @@ export class QuizService {
     }, new Array<Category>());
   }
 
-  createQuiz(categoryId: string, difficulty: Difficulty): Observable<Question[]> {
+  createQuiz(categoryId: string, difficulty: Difficulty, questionAmount=5): Observable<Question[]> {
     return this.http.get<{ results: ApiQuestion[] }>(
-        `${this.API_URL}/api.php?amount=5&category=${categoryId}&difficulty=${difficulty.toLowerCase()}&type=multiple`)
+        `${this.API_URL}/api.php?amount=${questionAmount}&category=${categoryId}&difficulty=${difficulty.toLowerCase()}&type=multiple`)
       .pipe(
         map(res => {
           const quiz: Question[] = res.results.map(q => (

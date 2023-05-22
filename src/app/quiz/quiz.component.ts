@@ -30,7 +30,7 @@ export class QuizComponent {
    * @param index : index of the question to swap
    */
   swapQuestion(index:number) {
-    let shiftedQuestion = this.extraQuestions.shift()
+    const shiftedQuestion = this.extraQuestions.shift()
     if(shiftedQuestion) this.questions[index] = shiftedQuestion
   }
 }

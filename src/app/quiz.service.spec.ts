@@ -19,7 +19,7 @@ describe('QuizService', () => {
 
   it('should group categories together if name contains ":" ', () => {
     // GIVEN
-    let ungroupedCategories: Category[] = [
+    const ungroupedCategories: Category[] = [
       {"id": "9", "name": "General Knowledge"},
       {"id": "10", "name": "Entertainment: Books"},
       {"id": "11", "name": "Entertainment: Film"},
@@ -30,7 +30,7 @@ describe('QuizService', () => {
     ]
 
     // WHEN
-    let groupedCategories = service.nestCategories(ungroupedCategories);
+    const groupedCategories = service.nestCategories(ungroupedCategories);
 
     // THEN
     expect(groupedCategories.length).toBe(4)

@@ -31,13 +31,13 @@ export class QuizService {
       // TODO refacto/clean code
       // This can be splitted in main and sub categories
       if (current.name.includes(":")) {
-        let [CategoryName, subCategoryName] = current.name.split(":")
-        let existingCategory = mainCategories.find(e => e.name === CategoryName)
+        const [categoryName, subCategoryName] = current.name.split(":")
+        const existingCategory = mainCategories.find(e => e.name === categoryName)
         if (existingCategory) {
           existingCategory.subCategories?.push({name: subCategoryName.trim(), id: current.id})
         } else {
           mainCategories.push({
-            name: CategoryName,
+            name: categoryName,
             subCategories: [{name: subCategoryName.trim(), id: current.id}],
             id: current.id
           })

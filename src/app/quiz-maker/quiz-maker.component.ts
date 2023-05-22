@@ -2,7 +2,7 @@ import {Component} from '@angular/core';
 import {Category, Difficulty, Question} from '../data.models';
 import {map, Observable} from 'rxjs';
 import {QuizService} from '../quiz.service';
-import {AbstractControl, FormControl, FormGroup, Validators} from "@angular/forms";
+import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {DropdownOption} from "../dropdown/dropdown.component";
 
 @Component({
@@ -14,8 +14,9 @@ export class QuizMakerComponent {
 
   // TODO decide if we get rid of any category
   ANY_CATEGORY: Category = {name: "Any category", id: "0", subCategories: []}
+  defaultDifficulty:Difficulty = "Easy"
 
-  selectableDifficulties: Difficulty[] = ["Easy", "Medium", "Hard"]
+  selectableDifficulties: Difficulty[] = [this.defaultDifficulty, "Medium", "Hard"]
   selectableSubCategories: DropdownOption<Category>[] = [];
   categories$: Observable<DropdownOption<Category>[]>;
   questions$!: Observable<Question[]>;
@@ -24,7 +25,7 @@ export class QuizMakerComponent {
   quizForm = new FormGroup({
     mainCategories: new FormControl<Category| undefined>(undefined, Validators.required),
     subCategories: new FormControl<Category | undefined>(undefined),
-    difficulty: new FormControl<Difficulty>("Easy", Validators.required),
+    difficulty: new FormControl<Difficulty>(this.defaultDifficulty, Validators.required),
   });
 
   constructor(protected quizService: QuizService) {
@@ -43,12 +44,15 @@ export class QuizMakerComponent {
   }
 
   createQuiz(): void {
-    let category = this.quizForm.value.subCategories?.id ? this.quizForm.value.subCategories?.id : this.quizForm.value.mainCategories?.id
-    this.questions$ = this.quizService.createQuiz(category ?? this.ANY_CATEGORY.id, this.quizForm.value.difficulty!);
-    this.extraQuestions$ = this.quizService.createQuiz(category ?? this.ANY_CATEGORY.id, this.quizForm.value.difficulty!, 1);
+    if(this.quizForm.valid){
+
+    const category = this.quizForm.value.subCategories?.id ? this.quizForm.value.subCategories?.id : this.quizForm.value.mainCategories?.id
+    this.questions$ = this.quizService.createQuiz(category ?? this.ANY_CATEGORY.id, this.quizForm.value.difficulty ?? this.defaultDifficulty);
+    this.extraQuestions$ = this.quizService.createQuiz(category ?? this.ANY_CATEGORY.id,this.quizForm.value.difficulty ?? this.defaultDifficulty, 1);
+    }
   }
 
   // https://angular.io/guide/form-validation#built-in-validator-functions
-  get mainCategory():any{ return this.quizForm.get('mainCategories'); }
+  get mainCategory() { return this.quizForm.get('mainCategories'); }
 
 }

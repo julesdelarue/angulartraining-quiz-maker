@@ -27,10 +27,10 @@ export class QuizComponent {
 
   /**
    * Player is allowed to change a question, as long as there are extra questions left
-   * @param i : index of the question to swap
+   * @param index : index of the question to swap
    */
-  swapQuestion(i:number) {
+  swapQuestion(index:number) {
     let shiftedQuestion = this.extraQuestions.shift()
-    if(shiftedQuestion) this.questions[i] = shiftedQuestion
+    if(shiftedQuestion) this.questions[index] = shiftedQuestion
   }
 }

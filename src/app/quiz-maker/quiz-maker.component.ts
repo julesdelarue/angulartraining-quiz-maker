@@ -48,6 +48,7 @@ export class QuizMakerComponent {
 
     const category = this.quizForm.value.subCategories?.id ? this.quizForm.value.subCategories?.id : this.quizForm.value.mainCategories?.id
     this.questions$ = this.quizService.createQuiz(category ?? this.ANY_CATEGORY.id, this.quizForm.value.difficulty ?? this.defaultDifficulty);
+    // FIXME this is prone to errors as we can fetch an existing question...
     this.extraQuestions$ = this.quizService.createQuiz(category ?? this.ANY_CATEGORY.id,this.quizForm.value.difficulty ?? this.defaultDifficulty, 1);
     }
   }

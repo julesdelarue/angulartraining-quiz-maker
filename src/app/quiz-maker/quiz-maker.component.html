@@ -3,11 +3,11 @@
 
     <form [formGroup]="quizForm" (ngSubmit)="createQuiz()">
 
-      <app-dropdown [options]="categories$ | async" formControlName="mainCategories"></app-dropdown>
+      <app-dropdown [options]="(categories$ | async) ?? []" formControlName="mainCategories"></app-dropdown>
       <!-- TODO better display for errors -->
       <div *ngIf="quizForm.invalid && (quizForm.dirty || quizForm.touched)"
            class="alert alert-danger">
-        <div *ngIf="mainCategory.errors?.['required']">
+        <div *ngIf="mainCategory?.errors?.['required']">
           A Category is required
         </div>
       </div>

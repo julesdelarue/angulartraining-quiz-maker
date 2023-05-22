@@ -4,9 +4,9 @@ import {
   Input,
   OnChanges,
   OnDestroy,
-  OnInit,
+  OnInit, QueryList,
   SimpleChanges,
-  ViewChild,
+  ViewChild, ViewChildren,
   ViewEncapsulation
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
@@ -14,19 +14,22 @@ import {CommonModule} from '@angular/common';
 import {ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule} from "@angular/forms";
 import {debounceTime, filter, fromEvent, Subscription} from "rxjs";
 import {HighlightPipe} from "../highlight.pipe";
+import {DropdownItemComponent} from "./dropdown-item/dropdown-item.component";
 
 
-export interface IDisplayable{
-  id:number|string;
-  label:string;
+export interface IOption {
+  id: number | string;
+  active?: boolean;
+  label: string;
 }
-export type DropdownOption<T> = T & IDisplayable;
+
+export type DropdownOption<T> = T & IOption;
 
 @Component({
   selector: 'app-dropdown',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, HighlightPipe],
-  providers:[
+  imports: [CommonModule, ReactiveFormsModule, HighlightPipe, DropdownItemComponent],
+  providers: [
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => DropdownComponent),
@@ -39,48 +42,46 @@ export type DropdownOption<T> = T & IDisplayable;
 })
 export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, ControlValueAccessor {
 
+  @Input() options: DropdownOption<T>[] = []
+  @ViewChildren(DropdownItemComponent) items?: QueryList<DropdownItemComponent<T>>;
+
+  dropdownContainer: ElementRef;
 
   // Un changement est défini par un clic sur un des éléments de la liste, ou null si l'utilisateur est en train d'écrire
-  private _onChange = (_: any) => { };
-  private _onTouched = () => { };
+  private _onChange!: (_: any) => void;
+  private _onTouched!: () => void;
   private _disabled = false;
 
-  @ViewChild('optionContainer') optionContainer!: ElementRef;
-  @ViewChild('input') inputContainer!: ElementRef;
-
   selectedOption?: DropdownOption<T>;
+  activeOption?: DropdownOption<T>;
+  filteredOptions: DropdownOption<T>[] = []
 
   isOpen = false;
 
-  // FIXME check if we can avoid null for async inputs
-  @Input()
-  options: DropdownOption<T>[] | null = []
-  filteredOptions: DropdownOption<T>[] = []
-  searchControl = new FormControl();
-  searchControlSubs: Subscription | undefined;
+  searchControl:FormControl<string> = new FormControl();
   term: string | undefined;
+
+  clickEventSubs: Subscription | undefined;
+  searchControlSubs: Subscription | undefined;
+
+  constructor(el: ElementRef) {
+    this.dropdownContainer = el;
+  }
 
   ngOnInit(): void {
 
     this.searchControlSubs = this.searchControl.valueChanges.pipe(
       debounceTime(250))
-      .subscribe(value => this.valueChanged(value))
+      .subscribe(value => this.inputChanged(value))
 
-    // TODO remember subscription pour destroy
-    fromEvent(document, 'click')
-      .pipe(
-        filter(e =>
-          // TODO extract method
-          this.optionContainer !== undefined && !this.optionContainer.nativeElement.contains(e.target) &&
-          this.inputContainer !== undefined && !this.inputContainer.nativeElement.contains(e.target)
-        )
-      )
+    this.clickEventSubs = fromEvent(document, 'click')
+      .pipe(filter(e => !this.dropdownContainer.nativeElement.contains(e.target)))
       .subscribe(() => this.close());
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['options']) {
-      this.filteredOptions = [...this.options ?? []]
+      this.filteredOptions = [...this.options]
     }
   }
 
@@ -88,30 +89,41 @@ export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, Contr
     if (this.searchControlSubs) {
       this.searchControlSubs.unsubscribe()
     }
+    if (this.clickEventSubs) {
+      this.clickEventSubs.unsubscribe()
+    }
+  }
+
+  select(option: DropdownOption<T>) {
+    this.selectedOption = option;
+    this.searchControl.setValue(option.label, {emitEvent: false})
+    this.term = undefined
+    this._onChange(option)
+    this.close()
   }
 
   /**
    * Se déclenche à chaque changement de valeur de l'input
    * @param value
    */
-  valueChanged(value: string): void {
-    // Un changement implique la suppression de la sélection déjà faite
-    if(this.selectedOption){
-      this.selectedOption = undefined;
-      this._onChange(null)
-    }
+  inputChanged(value: string): void {
 
-    // TODO Faire en sorte que la fonction de tri soit définir par l'appelant ??
+    if (!this.isOpen) this.open()
+    // Un changement implique la suppression de la sélection déjà faite
+    this.selectedOption = undefined;
+    this._onChange(null)
+
     this.term = value
-    value === null || value === undefined || value.length === 0 ?
-      this.resetOptions() :
-      this.filteredOptions = this.options?.filter(option => option.label.toLowerCase().includes(value.toLowerCase())) ?? []
+    value ? this.updateOptions(value) : this.resetOptions()
+  }
+  updateOptions(value:string):void{
+    // TODO Faire en sorte que la fonction de tri soit définir par l'appelant ??
+    this.filteredOptions = this.options?.filter(option => option.label.toLowerCase().includes(value.toLowerCase())) ?? []
   }
 
   resetOptions() {
     this.filteredOptions = this.options?.slice() ?? [];
   }
-
 
   open(): void {
     this.isOpen = true;
@@ -121,46 +133,28 @@ export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, Contr
     this.isOpen = false
   }
 
-  select(option: DropdownOption<T>) {
-    this.selectedOption = option;
-    this.searchControl.setValue(option.label, {emitEvent:false, onlySelf:true})
-    this.term = option.label
-    this.close()
-    this._onChange(option)
-  }
-
-  trackById(index:number, item:DropdownOption<T>) {
+  trackById(index: number, item: DropdownOption<T>) {
     return item.id;
   }
 
   /**
-   * ControlValueAccessor implementation
+   * ControlValueAccessor mapping
    */
-
   registerOnChange(fn: any): void {
-    // https://angular.io/api/forms/ControlValueAccessor#registeronchange
-    this._onChange = fn;
-  }
+    this._onChange = fn
+  };
 
   registerOnTouched(fn: any): void {
-    // https://angular.io/api/forms/ControlValueAccessor#registerontouched
-    this._onTouched = fn;
-  }
+    this._onTouched = fn
+  };
 
   setDisabledState(isDisabled: boolean): void {
-    // https://angular.io/api/forms/ControlValueAccessor#setdisabledstate
-    this._disabled = isDisabled;
-    // TODO disable feature
-    console.error("Should disable the dropdown:",isDisabled)
+    // TODO add disable feature
+    this._disabled = isDisabled
   }
 
-  writeValue(obj: any): void {
-    // TODO better implementation with more checks
-    if(obj === undefined || obj === null){
-      this.selectedOption = undefined
-    }else{
-      this.selectedOption = this.options?.find(e => e.id === obj['id'])
-    }
+  writeValue = (obj: DropdownOption<T> | null): void => {
+    this.selectedOption = this.options?.find(e => e.id === obj?.id)
   }
 
   /**
@@ -169,17 +163,50 @@ export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, Contr
    */
   @HostListener('keydown.arrowdown', ['$event'])
   handleArrowDownKey($event: KeyboardEvent) {
-    console.error($event)
+    $event.preventDefault()
+    if (this.activeOption) {
+      const currentIndex = this.filteredOptions.indexOf(this.activeOption ?? this.filteredOptions[0])
+      this.active(this.filteredOptions[(currentIndex + 1) % this.filteredOptions.length], true)
+    } else {
+      this.active(this.filteredOptions[0], true)
+    }
   }
 
   @HostListener('keydown.arrowup', ['$event'])
   handleArrowUpKey($event: KeyboardEvent) {
-    console.error("up")
+    $event.preventDefault()
+    if (this.activeOption) {
+      const currentIndex = this.filteredOptions.indexOf(this.activeOption)
+      this.active(this.filteredOptions[(currentIndex - 1 + this.filteredOptions.length) % (this.filteredOptions.length)], true)
+    } else {
+      this.active(this.filteredOptions[this.filteredOptions.length - 1], true)
+    }
   }
 
   @HostListener('keydown.enter', ['$event'])
   handleEnterKey($event: KeyboardEvent) {
-    console.error("up")
+    $event.preventDefault()
+    if (this.activeOption)
+      this.select(this.activeOption)
   }
 
+  active(option: T & IOption, scrollTo: boolean = false) {
+    // TODO clean code
+    if (this.activeOption === undefined) {
+      this.activeOption = option;
+      this.activeOption.active = true
+      return
+    }
+
+    this.activeOption.active = false
+    this.activeOption = option
+    this.activeOption.active = true
+
+    if (scrollTo)
+      this.items?.find(e => e.value === this.activeOption)?.scroll()
+  }
+
+  test() {
+    this.searchControl.reset()
+  }
 }

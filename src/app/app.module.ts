@@ -10,7 +10,6 @@ import { QuizComponent } from './quiz/quiz.component';
 import { QuestionComponent } from './question/question.component';
 import { AnswersComponent } from './answers/answers.component';
 import {DropdownComponent} from "./dropdown/dropdown.component";
-
 @NgModule({
   declarations: [
     AppComponent,

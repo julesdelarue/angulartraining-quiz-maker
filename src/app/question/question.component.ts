@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {Question} from '../data.models';
 
 @Component({
@@ -29,12 +29,12 @@ export class QuestionComponent {
   }
 
   @Output()
-  change = new EventEmitter<string>();
+  changeQuestion = new EventEmitter<string>();
 
   currentSelection!: string;
 
   buttonClicked(answer: string): void {
     this.currentSelection = answer;
-    this.change.emit(answer);
+    this.changeQuestion.emit(answer);
   }
 }

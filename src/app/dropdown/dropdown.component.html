@@ -1,0 +1,19 @@
+<div class="dropdown-input">
+
+  <input type="search" [formControl]="searchControl" (click)="open()" (focusin)="open()"/>
+
+  <div class="options-container" *ngIf="isOpen" role="listbox" tabindex="-1">
+    <app-dropdown-item *ngFor="let option of filteredOptions; index as i; trackBy: trackById" [value]="option">
+
+      <div class="option-item"
+           role="option"
+           [attr.aria-selected]="option.active"
+           [class.active]="option.active"
+           [innerHTML]="option.label | highlight : term"
+           (mouseover)="active(option)"
+           (click)="select(option)">
+      </div>
+
+    </app-dropdown-item>
+  </div>
+</div>

@@ -1,6 +1,7 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {QuizMakerComponent} from './quiz-maker.component';
+import {HttpClientTestingModule} from "@angular/common/http/testing";
 
 describe('GameStatsComponent', () => {
   let component: QuizMakerComponent;
@@ -8,6 +9,7 @@ describe('GameStatsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
       declarations: [QuizMakerComponent]
     })
       .compileComponents();

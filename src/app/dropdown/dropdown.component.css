@@ -1,0 +1,31 @@
+.dropdown-input{
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.dropdown-input input{
+  margin:unset;
+}
+.options-container{
+  max-height: 200px;
+  overflow: hidden;
+  overflow-y: auto;
+  position: absolute;
+  background: #f8f8f8;
+  width: 100%;
+  top:100%;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.option-item{
+  padding:0 0 0 0.5rem
+}
+
+.highlight{
+  font-weight: bold;
+}
+
+.active{
+  background-color: #e1e1e1;
+}

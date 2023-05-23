@@ -12,6 +12,11 @@ describe('AnswersComponent', () => {
     });
     fixture = TestBed.createComponent(AnswersComponent);
     component = fixture.componentInstance;
+    component.data = {
+      questions:[],
+      answers:[],
+      score:0
+    }
     fixture.detectChanges();
   });
 

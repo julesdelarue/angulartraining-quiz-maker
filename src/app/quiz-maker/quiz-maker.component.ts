@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {Category, Difficulty, Question} from '../data.models';
+import {Category, Difficulty, EMPTY_QUIZ, Quiz} from '../data.models';
 import {map, Observable} from 'rxjs';
 import {QuizService} from '../quiz.service';
 import {FormControl, FormGroup, Validators} from "@angular/forms";
@@ -12,48 +12,62 @@ import {DropdownOption} from "../dropdown/dropdown.component";
 })
 export class QuizMakerComponent {
 
-  // TODO decide if we get rid of any category
-  ANY_CATEGORY: Category = {name: "Any category", id: "0", subCategories: []}
-  defaultDifficulty:Difficulty = "Easy"
+  protected  readonly DEFAULT_DIFFICULTY: Difficulty = "Easy"
+  protected readonly EMPTY_QUIZ = EMPTY_QUIZ;
 
-  selectableDifficulties: Difficulty[] = [this.defaultDifficulty, "Medium", "Hard"]
+  difficulties: Difficulty[] = [this.DEFAULT_DIFFICULTY, "Medium", "Hard"]
   selectableSubCategories: DropdownOption<Category>[] = [];
   categories$: Observable<DropdownOption<Category>[]>;
-  questions$!: Observable<Question[]>;
-  extraQuestions$!: Observable<Question[]>;
+
+  quiz$!: Observable<Quiz>;
 
   quizForm = new FormGroup({
-    mainCategories: new FormControl<Category| undefined>(undefined, Validators.required),
+    mainCategories: new FormControl<Category | undefined>(undefined, Validators.required),
     subCategories: new FormControl<Category | undefined>(undefined),
-    difficulty: new FormControl<Difficulty>(this.defaultDifficulty, Validators.required),
+    difficulty: new FormControl<Difficulty>(this.DEFAULT_DIFFICULTY, Validators.required),
   });
 
   constructor(protected quizService: QuizService) {
-    this.categories$ = quizService.getAllCategories().pipe(map(c => c.map(x => ({...x, id:x.id, label:x.name}))))
+    this.categories$ = quizService.getAllCategories().pipe(map(c => c.map(x => this.toDropdownOption(x))))
+
+    // TODO remember obs
     this.quizForm.get('mainCategories')?.valueChanges.subscribe(selectedCategory => {
-
       // User changed first input, reset 2nd input anyway
+      this.quizForm.get('subCategories')?.setValidators([])
       this.quizForm.get('subCategories')?.reset()
-
       // Set subcategories if possible
-      this.selectableSubCategories = selectedCategory?.subCategories?.map(x => ({...x, id:x.id, label:x.name})) ?? []
+      this.selectableSubCategories = selectedCategory?.subCategories?.map(x => this.toDropdownOption(x)) ?? []
       if (this.selectableSubCategories.length > 0) {
+        this.quizForm.get('subCategories')?.setValidators(Validators.required);
         this.quizForm.get('subCategories')?.setValue(this.selectableSubCategories[0])
       }
     })
   }
 
-  createQuiz(): void {
-    if(this.quizForm.valid){
+  private toDropdownOption(category: Category):DropdownOption<Category> {
+    return {...category, id: category.id, label: category.name};
+  }
 
-    const category = this.quizForm.value.subCategories?.id ? this.quizForm.value.subCategories?.id : this.quizForm.value.mainCategories?.id
-    this.questions$ = this.quizService.createQuiz(category ?? this.ANY_CATEGORY.id, this.quizForm.value.difficulty ?? this.defaultDifficulty);
-    // FIXME this is prone to errors as we can fetch an existing question...
-    this.extraQuestions$ = this.quizService.createQuiz(category ?? this.ANY_CATEGORY.id,this.quizForm.value.difficulty ?? this.defaultDifficulty, 1);
+  createFromForm():{categoryId:string, difficulty:Difficulty} {
+    const subCategoryId = this.quizForm.value.subCategories?.id;
+    const categoryId = subCategoryId ? subCategoryId : this.quizForm.value.mainCategories?.id
+    const difficulty = this.quizForm.value.difficulty ?? this.DEFAULT_DIFFICULTY
+    return {categoryId:categoryId ?? "0",difficulty}
+  }
+
+  createQuiz(): void {
+    if (this.quizForm.valid) {
+      const quiz = this.createFromForm();
+      this.quiz$ = this.quizService.createQuiz(quiz.categoryId, quiz.difficulty);
     }
   }
 
   // https://angular.io/guide/form-validation#built-in-validator-functions
-  get mainCategory() { return this.quizForm.get('mainCategories'); }
+  get mainCategory() {
+    return this.quizForm.get('mainCategories');
+  }
 
+  get subCategory() {
+    return this.quizForm.get('subCategories');
+  }
 }

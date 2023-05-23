@@ -13,6 +13,10 @@ export interface ApiQuestion {
   incorrect_answers: string[];
 }
 
+export interface Quiz{
+  questions:Question[];
+  extraQuestions:Question[];
+}
 export interface Question {
   question: string;
   correct_answer: string;
@@ -28,3 +32,5 @@ export interface Results {
 
 
 export type Difficulty = "Easy" | "Medium" | "Hard";
+
+export const EMPTY_QUIZ:Quiz = {questions:[], extraQuestions:[]}

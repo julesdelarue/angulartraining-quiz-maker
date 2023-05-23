@@ -8,16 +8,22 @@
       <div *ngIf="quizForm.invalid && (quizForm.dirty || quizForm.touched)"
            class="alert alert-danger">
         <div *ngIf="mainCategory?.errors?.['required']">
-          A Category is required
+          category required
         </div>
       </div>
 
       <!-- TODO better display for errors -->
       <app-dropdown *ngIf="selectableSubCategories.length > 0" [options]="selectableSubCategories"
                     formControlName="subCategories"></app-dropdown>
+      <div *ngIf="quizForm.invalid && (quizForm.dirty || quizForm.touched)"
+           class="alert alert-danger">
+        <div *ngIf="subCategory?.errors?.['required']">
+          sub-category required
+        </div>
+      </div>
 
       <select id="difficultySelect" formControlName="difficulty">
-        <option [ngValue]="difficulty" *ngFor="let difficulty of selectableDifficulties">
+        <option [ngValue]="difficulty" *ngFor="let difficulty of difficulties">
           {{difficulty}}
         </option>
       </select>
@@ -29,6 +35,5 @@
   </div>
 </div>
 <div class="row">
-  <app-quiz [questions]="(questions$ | async) ?? []"
-            [extraQuestions]="(extraQuestions$ | async) ?? []"></app-quiz>
+  <app-quiz [quiz]="(quiz$ | async) ?? EMPTY_QUIZ"></app-quiz>
 </div>

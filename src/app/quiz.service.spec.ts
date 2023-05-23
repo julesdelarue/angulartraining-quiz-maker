@@ -30,7 +30,7 @@ describe('QuizService', () => {
     ]
 
     // WHEN
-    const groupedCategories = service.nestCategories(ungroupedCategories);
+    const groupedCategories = service.reduceCategories(ungroupedCategories);
 
     // THEN
     expect(groupedCategories.length).toBe(4)

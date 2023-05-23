@@ -6,7 +6,7 @@ import {
   OnDestroy,
   OnInit, QueryList,
   SimpleChanges,
-  ViewChild, ViewChildren,
+  ViewChildren,
   ViewEncapsulation
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
@@ -117,7 +117,6 @@ export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, Contr
     value ? this.updateOptions(value) : this.resetOptions()
   }
   updateOptions(value:string):void{
-    // TODO Faire en sorte que la fonction de tri soit définir par l'appelant ??
     this.filteredOptions = this.options?.filter(option => option.label.toLowerCase().includes(value.toLowerCase())) ?? []
   }
 
@@ -142,11 +141,11 @@ export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, Contr
    */
   registerOnChange(fn: any): void {
     this._onChange = fn
-  };
+  }
 
   registerOnTouched(fn: any): void {
     this._onTouched = fn
-  };
+  }
 
   setDisabledState(isDisabled: boolean): void {
     // TODO add disable feature
@@ -155,10 +154,11 @@ export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, Contr
 
   writeValue = (obj: DropdownOption<T> | null): void => {
     this.selectedOption = this.options?.find(e => e.id === obj?.id)
+    if(this.selectedOption === undefined) this.searchControl.reset()
   }
 
   /**
-   * Gestion des touches du clavier
+   * Minimal keyboard interactions
    * https://www.w3.org/TR/DOM-Level-3-Events-key/#named-key-attribute-values
    */
   @HostListener('keydown.arrowdown', ['$event'])
@@ -190,7 +190,7 @@ export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, Contr
       this.select(this.activeOption)
   }
 
-  active(option: T & IOption, scrollTo: boolean = false) {
+  active(option: T & IOption, scrollTo = false) {
     // TODO clean code
     if (this.activeOption === undefined) {
       this.activeOption = option;
@@ -204,9 +204,5 @@ export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, Contr
 
     if (scrollTo)
       this.items?.find(e => e.value === this.activeOption)?.scroll()
-  }
-
-  test() {
-    this.searchControl.reset()
   }
 }

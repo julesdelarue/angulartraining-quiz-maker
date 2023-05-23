@@ -1,5 +1,5 @@
 import {Component, inject, Input} from '@angular/core';
-import {Question} from '../data.models';
+import {EMPTY_QUIZ, Quiz} from '../data.models';
 import {QuizService} from '../quiz.service';
 import {Router} from '@angular/router';
 
@@ -11,17 +11,14 @@ import {Router} from '@angular/router';
 export class QuizComponent {
 
   @Input()
-  questions: Question[] = [];
-
-  @Input()
-  extraQuestions: Question[] = [];
+  quiz: Quiz = EMPTY_QUIZ;
 
   userAnswers: string[] = [];
   quizService = inject(QuizService);
   router = inject(Router);
 
   submit(): void {
-    this.quizService.computeScore(this.questions ?? [], this.userAnswers);
+    this.quizService.computeScore(this.quiz.questions ?? [], this.userAnswers);
     this.router.navigateByUrl("/result");
   }
 
@@ -30,7 +27,7 @@ export class QuizComponent {
    * @param index : index of the question to swap
    */
   swapQuestion(index:number) {
-    const shiftedQuestion = this.extraQuestions.shift()
-    if(shiftedQuestion) this.questions[index] = shiftedQuestion
+    const shiftedQuestion = this.quiz.extraQuestions.shift()
+    if(shiftedQuestion) this.quiz.questions[index] = shiftedQuestion
   }
 }

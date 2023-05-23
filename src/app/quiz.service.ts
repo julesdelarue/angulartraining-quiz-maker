@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {map, Observable} from 'rxjs';
-import {Category, Difficulty, ApiQuestion, Question, Results} from './data.models';
+import {Category, Difficulty, ApiQuestion, Question, Results, Quiz} from './data.models';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +16,7 @@ export class QuizService {
 
   getAllCategories(): Observable<Category[]> {
     return this.http.get<{ trivia_categories: Category[] }>(this.API_URL + "api_category.php").pipe(
-      map(res => this.nestCategories(res.trivia_categories))
+      map(res => this.reduceCategories(res.trivia_categories))
     );
   }
 
@@ -25,39 +25,52 @@ export class QuizService {
    * @param trivia_categories
    * @private
    */
-  nestCategories(trivia_categories: Category[]):Category[] {
-    return trivia_categories.reduce((mainCategories, current) => {
+  reduceCategories(trivia_categories: Category[]):Category[] {
+    return trivia_categories.reduce((categories, current) => {
 
-      // TODO refacto/clean code
-      // This can be splitted in main and sub categories
-      if (current.name.includes(":")) {
-        const [categoryName, subCategoryName] = current.name.split(":")
-        const existingCategory = mainCategories.find(e => e.name === categoryName)
-        if (existingCategory) {
-          existingCategory.subCategories?.push({name: subCategoryName.trim(), id: current.id})
-        } else {
-          mainCategories.push({
-            name: categoryName,
-            subCategories: [{name: subCategoryName.trim(), id: current.id}],
-            id: current.id
-          })
-        }
+      if (this.isSubcategory(current)) {
+        this.addOrCreateSubcategory(current, categories);
       } else {
-        mainCategories.push({...current})
+        categories.push({...current})
       }
-      return mainCategories
+      return categories
     }, new Array<Category>());
   }
 
-  createQuiz(categoryId: string, difficulty: Difficulty, questionAmount=5): Observable<Question[]> {
+  private addOrCreateSubcategory(current: Category, categories: Category[]) {
+    const [mainCategoryName, subCategoryName] = current.name.split(":")
+    const existingCategory = categories.find(e => e.name === mainCategoryName)
+
+    if (existingCategory) {
+      // Add
+      existingCategory.subCategories?.push({name: subCategoryName.trim(), id: current.id})
+    } else {
+      // Create
+      categories.push({
+        name: mainCategoryName,
+        subCategories: [{name: subCategoryName.trim(), id: current.id}],
+        id: current.id
+      })
+    }
+  }
+
+  private isSubcategory(current: Category) {
+    return current.name.includes(":");
+  }
+
+  createQuiz(categoryId: string, difficulty: Difficulty, questionAmount=5, extraQuestionAmount=1): Observable<Quiz> {
     return this.http.get<{ results: ApiQuestion[] }>(
-        `${this.API_URL}/api.php?amount=${questionAmount}&category=${categoryId}&difficulty=${difficulty.toLowerCase()}&type=multiple`)
+        `${this.API_URL}/api.php?amount=${questionAmount+extraQuestionAmount}&category=${categoryId}&difficulty=${difficulty.toLowerCase()}&type=multiple`)
       .pipe(
         map(res => {
-          const quiz: Question[] = res.results.map(q => (
+          const questions: Question[] = res.results.map(q => (
             {...q, all_answers: [...q.incorrect_answers, q.correct_answer].sort(() => (Math.random() > 0.5) ? 1 : -1)}
           ));
-          return quiz;
+
+          return {
+            questions:questions.splice(0,questionAmount),
+            extraQuestions:questions
+          };
         })
       );
   }

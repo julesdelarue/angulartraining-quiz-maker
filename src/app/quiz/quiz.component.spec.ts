@@ -23,11 +23,11 @@ describe('QuizComponent', () => {
 
   it('should render questions', () => {
     // GIVEN
-    component.questions = [
+    component.quiz.questions = [
       {question:"Mock question", all_answers:["0", "1", "2", "3"], correct_answer:"0", incorrect_answers:["1", "2", "3"]},
       {question:"Mock question 2", all_answers:["4", "5", "6", "7"], correct_answer:"7", incorrect_answers:["4", "5", "6"]},
     ]
-    component.extraQuestions = [];
+    component.quiz.extraQuestions = [];
 
     //WHEN
     fixture.detectChanges()
@@ -39,10 +39,10 @@ describe('QuizComponent', () => {
 
   it('should render change question button', () => {
     // GIVEN
-    component.questions = [
+    component.quiz.questions = [
       {question:"Mock question", all_answers:["0", "1", "2", "3"], correct_answer:"0", incorrect_answers:["1", "2", "3"]}
     ]
-    component.extraQuestions = [{question:"Mock question 2", all_answers:["4", "5", "6", "7"], correct_answer:"7", incorrect_answers:["4", "5", "6"]},];
+    component.quiz.extraQuestions = [{question:"Mock question 2", all_answers:["4", "5", "6", "7"], correct_answer:"7", incorrect_answers:["4", "5", "6"]},];
 
     //WHEN
     fixture.detectChanges()
@@ -54,10 +54,10 @@ describe('QuizComponent', () => {
 
   it('should not render change question button', () => {
     // GIVEN
-    component.questions = [
+    component.quiz.questions = [
       {question:"Mock question", all_answers:["0", "1", "2", "3"], correct_answer:"0", incorrect_answers:["1", "2", "3"]}
     ]
-    component.extraQuestions = [];
+    component.quiz.extraQuestions = [];
 
     //WHEN
     fixture.detectChanges()

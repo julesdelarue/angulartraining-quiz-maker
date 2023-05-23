@@ -5,7 +5,6 @@
   <div class="options-container" *ngIf="isOpen" role="listbox" tabindex="-1">
     <app-dropdown-item *ngFor="let option of filteredOptions; index as i; trackBy: trackById" [value]="option">
 
-      <!-- ici le template à afficher -->
       <div class="option-item"
            role="option"
            [attr.aria-selected]="option.active"

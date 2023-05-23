@@ -1,6 +1,5 @@
 import {Component, ElementRef,  Input,} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {HighlightPipe} from "../../highlight.pipe";
 
 export interface IOption {
   id: number | string;

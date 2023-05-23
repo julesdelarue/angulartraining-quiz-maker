@@ -1,6 +1,6 @@
-<app-question *ngFor="let q of questions; index as i" [question]="q"
+<app-question *ngFor="let q of quiz.questions; index as i" [question]="q"
               (changeQuestion)="userAnswers[i] = $event">
-  <button [attr.aria-label]="'Change question '+(i+1)" class="inverse" (click)="swapQuestion(i)" *ngIf="extraQuestions.length > 0">
+  <button [attr.aria-label]="'Change question '+(i+1)" class="inverse" (click)="swapQuestion(i)" *ngIf="quiz.extraQuestions.length > 0">
     Change question
   </button>
 </app-question>

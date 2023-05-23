@@ -4,23 +4,9 @@
     <form [formGroup]="quizForm" (ngSubmit)="createQuiz()">
 
       <app-dropdown [options]="(categories$ | async) ?? []" formControlName="mainCategories"></app-dropdown>
-      <!-- TODO better display for errors -->
-      <div *ngIf="quizForm.invalid && (quizForm.dirty || quizForm.touched)"
-           class="alert alert-danger">
-        <div *ngIf="mainCategory?.errors?.['required']">
-          category required
-        </div>
-      </div>
 
-      <!-- TODO better display for errors -->
       <app-dropdown *ngIf="selectableSubCategories.length > 0" [options]="selectableSubCategories"
                     formControlName="subCategories"></app-dropdown>
-      <div *ngIf="quizForm.invalid && (quizForm.dirty || quizForm.touched)"
-           class="alert alert-danger">
-        <div *ngIf="subCategory?.errors?.['required']">
-          sub-category required
-        </div>
-      </div>
 
       <select id="difficultySelect" formControlName="difficulty">
         <option [ngValue]="difficulty" *ngFor="let difficulty of difficulties">
@@ -31,6 +17,17 @@
       <button type="submit" class="primary" id="createBtn" [disabled]="quizForm.invalid">
         Create
       </button>
+
+      <!-- Display errors -->
+      <div *ngIf="quizForm.invalid && (quizForm.dirty || quizForm.touched)" class="alert alert-danger">
+        <div *ngIf="mainCategory?.errors?.['required']">
+          category required
+        </div>
+        <div *ngIf="subCategory?.errors?.['required']">
+          sub-category required
+        </div>
+      </div>
+
     </form>
   </div>
 </div>

@@ -16,7 +16,6 @@ import {debounceTime, filter, fromEvent, Subscription} from "rxjs";
 import {HighlightPipe} from "../highlight.pipe";
 import {DropdownItemComponent} from "./dropdown-item/dropdown-item.component";
 
-
 export interface IOption {
   id: number | string;
   active?: boolean;
@@ -61,8 +60,7 @@ export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, Contr
   searchControl:FormControl<string> = new FormControl();
   term: string | undefined;
 
-  clickEventSubs: Subscription | undefined;
-  searchControlSubs: Subscription | undefined;
+  sink:Subscription[] = []
 
   constructor(el: ElementRef) {
     this.dropdownContainer = el;
@@ -70,13 +68,16 @@ export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, Contr
 
   ngOnInit(): void {
 
-    this.searchControlSubs = this.searchControl.valueChanges.pipe(
-      debounceTime(250))
+    const searchControlSubs = this.searchControl.valueChanges.pipe(
+      debounceTime(150), filter(e => e !== null))
       .subscribe(value => this.inputChanged(value))
 
-    this.clickEventSubs = fromEvent(document, 'click')
+    const clickEventSubs = fromEvent(document, 'click')
       .pipe(filter(e => !this.dropdownContainer.nativeElement.contains(e.target)))
       .subscribe(() => this.close());
+
+    this.sink.push(clickEventSubs)
+    this.sink.push(searchControlSubs)
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -86,12 +87,7 @@ export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, Contr
   }
 
   ngOnDestroy(): void {
-    if (this.searchControlSubs) {
-      this.searchControlSubs.unsubscribe()
-    }
-    if (this.clickEventSubs) {
-      this.clickEventSubs.unsubscribe()
-    }
+    this.sink.forEach(subs => subs.unsubscribe())
   }
 
   select(option: DropdownOption<T>) {
@@ -107,7 +103,6 @@ export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, Contr
    * @param value
    */
   inputChanged(value: string): void {
-
     if (!this.isOpen) this.open()
     // Un changement implique la suppression de la sélection déjà faite
     this.selectedOption = undefined;
@@ -148,7 +143,7 @@ export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, Contr
   }
 
   setDisabledState(isDisabled: boolean): void {
-    // TODO add disable feature
+    // FIXME add disable feature
     this._disabled = isDisabled
   }
 
@@ -191,14 +186,9 @@ export class DropdownComponent<T> implements OnInit, OnDestroy, OnChanges, Contr
   }
 
   active(option: T & IOption, scrollTo = false) {
-    // TODO clean code
-    if (this.activeOption === undefined) {
-      this.activeOption = option;
-      this.activeOption.active = true
-      return
-    }
+    const previousAction = this.activeOption;
+    if(previousAction) previousAction.active = false
 
-    this.activeOption.active = false
     this.activeOption = option
     this.activeOption.active = true
 

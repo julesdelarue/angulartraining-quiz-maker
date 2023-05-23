@@ -1,6 +1,6 @@
-import {Component} from '@angular/core';
+import {Component, OnDestroy} from '@angular/core';
 import {Category, Difficulty, EMPTY_QUIZ, Quiz} from '../data.models';
-import {map, Observable} from 'rxjs';
+import {map, Observable, Subscription} from 'rxjs';
 import {QuizService} from '../quiz.service';
 import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {DropdownOption} from "../dropdown/dropdown.component";
@@ -10,7 +10,7 @@ import {DropdownOption} from "../dropdown/dropdown.component";
   templateUrl: './quiz-maker.component.html',
   styleUrls: ['./quiz-maker.component.css']
 })
-export class QuizMakerComponent {
+export class QuizMakerComponent implements OnDestroy{
 
   protected  readonly DEFAULT_DIFFICULTY: Difficulty = "Easy"
   protected readonly EMPTY_QUIZ = EMPTY_QUIZ;
@@ -21,6 +21,8 @@ export class QuizMakerComponent {
 
   quiz$!: Observable<Quiz>;
 
+  sink:Subscription[] = []
+
   quizForm = new FormGroup({
     mainCategories: new FormControl<Category | undefined>(undefined, Validators.required),
     subCategories: new FormControl<Category | undefined>(undefined),
@@ -30,8 +32,7 @@ export class QuizMakerComponent {
   constructor(protected quizService: QuizService) {
     this.categories$ = quizService.getAllCategories().pipe(map(c => c.map(x => this.toDropdownOption(x))))
 
-    // TODO remember obs
-    this.quizForm.get('mainCategories')?.valueChanges.subscribe(selectedCategory => {
+    const subscription = this.quizForm.get('mainCategories')?.valueChanges.subscribe(selectedCategory => {
       // User changed first input, reset 2nd input anyway
       this.quizForm.get('subCategories')?.setValidators([])
       this.quizForm.get('subCategories')?.reset()
@@ -42,7 +43,15 @@ export class QuizMakerComponent {
         this.quizForm.get('subCategories')?.setValue(this.selectableSubCategories[0])
       }
     })
+
+    if(subscription) this.sink.push(subscription)
   }
+
+  ngOnDestroy(): void {
+    this.sink.forEach(subs => subs.unsubscribe())
+  }
+
+
 
   private toDropdownOption(category: Category):DropdownOption<Category> {
     return {...category, id: category.id, label: category.name};

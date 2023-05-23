@@ -1,14 +1,6 @@
 import {Component, ElementRef,  Input,} from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-export interface IOption {
-  id: number | string;
-  selected?: boolean;
-  active?: boolean;
-  label: string;
-}
-
-export type DropdownOption<T> = T & IOption;
+import {DropdownOption} from "../dropdown.component";
 
 @Component({
   selector: 'app-dropdown-item',
